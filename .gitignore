@@ -1,48 +1,43 @@
-# ------------------------------
 # Python
-# ------------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.so
+.venv/
+venv/
+env/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
+coverage.xml
 htmlcov/
-
-# Virtual Environment
-backend/.venv/
-
-# Environment Variables
-backend/.env
-.env
-
-# IDEs
-.vscode/
-.idea/
-
-# macOS
-.DS_Store
-
-# Linux
-*~
-
-# Logs
-*.log
-
-# Node
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-
-# Build Artifacts
-dist/
+.pyre/
+.hypothesis/
+*.egg-info/
 build/
+dist/
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
 
 # Docker
-*.pid
+*.log
+docker-data/
 
-# Misc
+# VS Code
+.vscode/
+.history/
+
+# OS
+.DS_Store
 Thumbs.db
