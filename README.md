@@ -4,10 +4,28 @@ ResearchMind AI is an open-source, production-ready Retrieval-Augmented Generati
 
 Every response includes direct citations, pointing exactly to the source document and page number.
 
-![ResearchMind AI UI Preview](./docs/preview.png)
-*(Demo preview placeholder)*
+## 📸 Screenshots
+
+### Home
+
+![Home](docs/images/Landing_Page.png)
 
 ---
+
+### Upload Document
+
+![Upload](docs/images/Upload_Doc.png)
+
+---
+
+### Chat with ResearchMind AI
+
+![Chat](docs/images/Research_Paper.png)
+![Chat](docs/images/Performance_Sheet.png)
+![Chat](docs/images/Resume.png)
+
+---
+
 
 ## ✨ Features
 
