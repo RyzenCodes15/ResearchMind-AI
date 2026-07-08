@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useChat } from '../lib/ChatContext';
 
 export default function Sidebar() {
-  const { documents, isUploading, uploadError, handleUpload } = useChat();
+  const { documents, isUploading, uploadError, uploadSuccess, handleUpload, handleDeleteDocument, deleteError, deleteSuccess, isDeleting } = useChat();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -19,7 +20,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-full">
+    <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-full relative shrink-0">
       <div className="p-4 border-b border-gray-200">
         <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
           <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -61,8 +62,33 @@ export default function Sidebar() {
               </>
             )}
           </button>
+          
           {uploadError && (
-            <p className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">{uploadError}</p>
+            <div className="mt-3 text-sm text-red-600 bg-red-50/80 border border-red-100 p-2 rounded-md flex items-start gap-2">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>{uploadError}</span>
+            </div>
+          )}
+          
+          {uploadSuccess && (
+            <div className="mt-3 text-sm text-emerald-700 bg-emerald-50/80 border border-emerald-100 p-2 rounded-md flex items-start gap-2">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <span>{uploadSuccess}</span>
+            </div>
+          )}
+
+          {deleteError && (
+            <div className="mt-3 text-sm text-red-600 bg-red-50/80 border border-red-100 p-2 rounded-md flex items-start gap-2">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>{deleteError}</span>
+            </div>
+          )}
+          
+          {deleteSuccess && (
+            <div className="mt-3 text-sm text-emerald-700 bg-emerald-50/80 border border-emerald-100 p-2 rounded-md flex items-start gap-2">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <span>{deleteSuccess}</span>
+            </div>
           )}
         </div>
 
@@ -73,7 +99,7 @@ export default function Sidebar() {
           ) : (
             <ul className="space-y-2">
               {documents.map((doc, index) => (
-                <li key={index} className="flex items-start gap-2 p-2 rounded-md hover:bg-gray-100 transition-colors cursor-pointer group">
+                <li key={index} className="flex items-start gap-2 p-2 rounded-md hover:bg-gray-100 transition-colors cursor-pointer group relative pr-8">
                   <svg className="w-5 h-5 text-gray-400 mt-0.5 group-hover:text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
@@ -85,12 +111,56 @@ export default function Sidebar() {
                       {(doc.file_size_bytes / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
+                  {isDeleting === doc.id ? (
+                    <div className="absolute top-1 right-1 p-1.5 text-gray-400">
+                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDocumentToDelete(doc.id)}
+                      className="absolute top-1 right-1 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Delete document"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
           )}
         </div>
       </div>
+
+      {documentToDelete !== null && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-5 w-80">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Document</h3>
+            <p className="text-sm text-gray-500 mb-5">Are you sure you want to delete this document?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDocumentToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  handleDeleteDocument(documentToDelete);
+                  setDocumentToDelete(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

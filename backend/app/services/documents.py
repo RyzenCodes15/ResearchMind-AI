@@ -57,13 +57,16 @@ class DocumentIngestionService:
 			prepared = await self._prepare_upload(upload_file)
 			existing = self.document_repository.get_by_hash(prepared.file_hash)
 			if existing is not None:
-				self._cleanup_path(prepared.temp_path)
-				return DocumentIngestionResponse(
-					duplicate=True,
-					document=self._document_to_response(existing),
-					chunks=[self._chunk_to_response(chunk) for chunk in existing.chunks],
-					message="Duplicate PDF skipped",
-				)
+				if existing.status == DocumentStatus.FAILED:
+					self.document_repository.delete(existing)
+				else:
+					self._cleanup_path(prepared.temp_path)
+					return DocumentIngestionResponse(
+						duplicate=True,
+						document=self._document_to_response(existing),
+						chunks=[self._chunk_to_response(chunk) for chunk in existing.chunks],
+						message="Duplicate PDF skipped",
+					)
 
 			final_path = self.storage.build_final_path(prepared.file_hash, prepared.original_filename)
 			prepared.temp_path.replace(final_path)
@@ -116,6 +119,25 @@ class DocumentIngestionService:
 			await upload_file.close()
 			if prepared is not None:
 				self._cleanup_path(prepared.temp_path)
+
+	async def list_documents(self) -> list[DocumentResponse]:
+		documents = self.document_repository.list(limit=1000)
+		return [self._document_to_response(doc) for doc in documents]
+
+	async def delete_document(self, document_id: int) -> None:
+		document = self.document_repository.get(document_id)
+		if not document:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Document not found",
+			)
+		
+		storage_path = Path(document.storage_path)
+		if storage_path.exists():
+			self._cleanup_path(storage_path)
+
+		self.document_repository.delete(document)
+		self.document_repository.session.commit()
 
 	def _validate_upload(self, upload_file: UploadFile) -> None:
 		if upload_file.content_type not in ALLOWED_CONTENT_TYPES:

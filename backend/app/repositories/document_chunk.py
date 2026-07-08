@@ -19,13 +19,20 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
 		self,
 		query_embedding: list[float],
 		top_k: int,
+		document_ids: list[int] | None = None,
 	) -> list[tuple[DocumentChunk, Document, float]]:
 		distance = DocumentChunk.embedding.cosine_distance(query_embedding).label("distance")
 		statement: Select[tuple[DocumentChunk, Document, float]] = (
 			select(DocumentChunk, Document, distance)
-			.join(Document, Document.id == DocumentChunk.document_id)
+			.join(Document, DocumentChunk.document_id == Document.id)
 			.order_by(distance)
 			.limit(top_k)
 		)
+		
+		if document_ids is not None:
+			if not document_ids:
+				return []
+			statement = statement.where(DocumentChunk.document_id.in_(document_ids))
+			
 		rows = self.session.execute(statement).all()
 		return [(chunk, document, float(distance_value)) for chunk, document, distance_value in rows]

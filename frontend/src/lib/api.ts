@@ -1,4 +1,4 @@
-import { ChatRequest, ChatResponse, DocumentIngestionResponse } from './types';
+import { ChatRequest, ChatResponse, DocumentIngestionResponse, DocumentResponse } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 
@@ -19,8 +19,30 @@ export async function uploadDocument(file: File): Promise<DocumentIngestionRespo
   return response.json();
 }
 
-export async function sendMessage(question: string, topK?: number): Promise<ChatResponse> {
-  const payload: ChatRequest = { question };
+export async function fetchDocuments(): Promise<DocumentResponse[]> {
+  const response = await fetch(`${API_BASE_URL}/documents`);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch documents: ${response.status} ${errorText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteDocument(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to delete document: ${response.status} ${errorText}`);
+  }
+}
+
+export async function sendMessage(question: string, documentIds: number[], topK?: number): Promise<ChatResponse> {
+  const payload: ChatRequest = { question, document_ids: documentIds };
   if (topK !== undefined) {
     payload.top_k = topK;
   }

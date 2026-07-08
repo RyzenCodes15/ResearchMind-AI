@@ -53,6 +53,7 @@ export interface ChatResponse {
 export interface ChatRequest {
   question: string;
   top_k?: number;
+  document_ids?: number[];
 }
 
 // Frontend specific types

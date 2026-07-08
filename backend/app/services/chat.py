@@ -79,7 +79,11 @@ class ChatService:
 		question = request.question.strip()
 		top_k = request.top_k or settings.CHAT_TOP_K
 		question_embedding = self.embedding_service.embed_text(question)
-		matches = self.document_chunk_repository.search_similar_chunks(question_embedding, top_k)
+		matches = self.document_chunk_repository.search_similar_chunks(
+			query_embedding=question_embedding, 
+			top_k=top_k, 
+			document_ids=request.document_ids
+		)
 		best_similarity = max((max(0.0, 1.0 - distance) for _, _, distance in matches), default=0.0)
 
 		if not matches or best_similarity < settings.CHAT_MIN_SIMILARITY:
